@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "top.cyclops.mcp.room.plugin"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 29
