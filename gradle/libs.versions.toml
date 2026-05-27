@@ -16,6 +16,7 @@ ktor = "3.5.0"
 appstartup = "1.2.0"
 appcompat = "1.7.1"
 sqlite = "2.6.2"
+room = "2.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +46,9 @@ ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serializatio
 androidx-appstartup = { group = "androidx.startup", name = "startup-runtime", version.ref = "appstartup" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-sqlite = { group = "androidx.sqlite", name = "sqlite-android", version.ref = "sqlite" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

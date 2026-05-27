@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "top.cyclops.mcp.room.plugin"
+    namespace = "top.cyclops.mcp.room.plugin.core"
     compileSdk = 36
 
     defaultConfig {

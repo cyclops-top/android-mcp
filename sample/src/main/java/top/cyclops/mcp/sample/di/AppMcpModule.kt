@@ -1,12 +1,19 @@
 package top.cyclops.mcp.sample.di
 
+import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import top.cyclops.mcp.common.McpConfig
 import top.cyclops.mcp.common.McpToolMarker
+import top.cyclops.mcp.room.plugin.core.McpRoomProvider
+import top.cyclops.mcp.sample.dao.UserDao
+import top.cyclops.mcp.sample.db.AppDatabase
+import top.cyclops.mcp.sample.provider.SampleRoom2Provider
 import top.cyclops.mcp.sample.tools.TestTool
 import javax.inject.Singleton
 
@@ -20,7 +27,23 @@ object AppMcpModule {
         return McpConfig(
             name = "android-mcp-sample",
             port = 11432,
+            debug = true,
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(context, AppDatabase::class.java, "sample.db").build()
+    }
+
+    @Provides
+    fun provideUserDao(database: AppDatabase): UserDao = database.userDao()
+
+    @Provides
+    @IntoSet
+    fun provideRoom2Provider(provider: SampleRoom2Provider): McpRoomProvider {
+        return provider
     }
 
     @Provides

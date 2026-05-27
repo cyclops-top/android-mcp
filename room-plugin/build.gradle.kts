@@ -17,11 +17,17 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 }
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+    }
+}
 
 dependencies {
     implementation(project(":room-plugin-core"))
     implementation(project(":mcp"))
     implementation(project(":common"))
+    implementation(libs.androidx.sqlite)
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
 }

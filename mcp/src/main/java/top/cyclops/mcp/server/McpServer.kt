@@ -90,18 +90,20 @@ class McpServer @Inject constructor(
         serverJob = scope.launch {
             embeddedServer(CIO, host = config.host, port = config.port) {
 
-                val androidLogPlugin = createApplicationPlugin("AndroidLogPlugin") {
-                    onCall { call ->
-                        Log.d(
-                            TAG,
-                            "🔗 [网络请求入站] -> ${call.request.uri} : ${call.request.httpMethod.value}"
-                        )
+                if (config.debug) {
+                    val androidLogPlugin = createApplicationPlugin("AndroidLogPlugin") {
+                        onCall { call ->
+                            Log.d(
+                                TAG,
+                                "🔗 [网络请求入站] -> ${call.request.uri} : ${call.request.httpMethod.value}"
+                            )
+                        }
+                        onCallRespond { call ->
+                            Log.d(TAG, "📤 [网络响应出站] <- 状态码: ${call.response.status()?.value}")
+                        }
                     }
-                    onCallRespond { call ->
-                        Log.d(TAG, "📤 [网络响应出站] <- 状态码: ${call.response.status()?.value}")
-                    }
+                    install(androidLogPlugin)
                 }
-                install(androidLogPlugin)
                 install(CORS) {
                     anyHost()
                     allowHeader("Content-Type")

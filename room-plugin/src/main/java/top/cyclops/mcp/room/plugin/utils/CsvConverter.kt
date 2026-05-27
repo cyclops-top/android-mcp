@@ -42,7 +42,7 @@ object CsvConverter {
         valueFor: (Int) -> String
     ): String {
         val builder = StringBuilder()
-        val headers = (0 until columnCount).map(headerFor)
+        val headers = (0 until columnCount).map { escapeCsv(headerFor(it)) }
         builder.append(headers.joinToString(",")).append("\n")
 
         while (hasNext()) {
