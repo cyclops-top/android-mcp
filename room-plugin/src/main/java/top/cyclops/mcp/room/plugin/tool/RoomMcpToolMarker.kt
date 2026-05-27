@@ -19,7 +19,7 @@ class RoomMcpToolMarker @Inject constructor(
         providers.associateBy { it.name }.also { map ->
             val duplicates = providers.map { it.name }.groupBy { it }.filter { it.value.size > 1 }.keys
             if (duplicates.isNotEmpty()) {
-                Log.w(TAG, "检测到重复的数据库名称: $duplicates，仅最后一个生效")
+                                Log.w(TAG, "Duplicate database names detected: $duplicates — only the last registered provider will be used")
             }
         }
 
@@ -31,21 +31,21 @@ class RoomMcpToolMarker @Inject constructor(
 
     @McpTool(
         name = "list_databases",
-        description = "列出当前设备上所有可用的数据库，包含名称和描述信息"
+                description = "List all available databases on the device with names and descriptions"
     )
     fun listDatabases(): ToolResult {
         val output = providerMap.values.sortedBy { it.name }.joinToString("\n") { provider ->
             "${provider.name} - ${provider.description}"
         }
-        return ToolResult.Text(output.ifEmpty { "暂无可用数据库" })
+        return         return ToolResult.Text(output.ifEmpty { "No databases available" })
     }
 
     @McpTool(
         name = "inspect_schema",
-        description = "获取指定数据库中所有业务表的建表语句（DDL）。在编写具体的业务 SQL 之前，必须先调用此工具了解数据库 Schema。"
+        description = "Retrieve the DDL (CREATE TABLE statements) for all user tables in the specified database. Call this tool FIRST before writing any SQL queries to understand the database schema."
     )
     suspend fun inspectSchema(
-        @McpParam(name = "database", description = "数据库名称。可以通过list_databases获取 ，如果只有一个数据库可传空字符串。")
+        @McpParam(name = "database", description = "Database name. Use list_databases to see available databases. If only one database exists, you may pass an empty string.")
         database: String,
     ): ToolResult {
         val sql = """
@@ -66,12 +66,12 @@ class RoomMcpToolMarker @Inject constructor(
 
     @McpTool(
         name = "execute_sql",
-        description = "在设备上指定数据库执行原生 SQL 并返回 CSV 数据。警告：为了防止数据量过大导致内存溢出，所有的 SELECT 查询必须显式包含 LIMIT 子句（建议 LIMIT 20）！"
+        description = "Execute raw SQL on the specified database and return results as CSV. WARNING: To prevent OOM crashes from excessive data, ALL SELECT queries MUST include a LIMIT clause (recommended: LIMIT 20)!"
     )
     suspend fun executeSql(
-        @McpParam(name = "database", description = "数据库名称。可以通过list_databases获取 ，如果只有一个数据库可传空字符串。")
+        @McpParam(name = "database", description = "Database name. Use list_databases to see available databases. If only one database exists, you may pass an empty string.")
         database: String,
-        @McpParam(name = "sql", description = "要执行的原生 SQLite 语句")
+                @McpParam(name = "sql", description = "Raw SQLite statement to execute (example: SELECT * FROM user_table LIMIT 10)")
         sql: String
     ): ToolResult {
         val targetDb = if (providerMap.size == 1 && database.isBlank()) {
@@ -86,9 +86,9 @@ class RoomMcpToolMarker @Inject constructor(
         return try {
             ToolResult.Text(executor.execute(database, sql))
         } catch (e: IllegalStateException) {
-            ToolResult.Error(e.message ?: "未找到数据库连接")
+            ToolResult.Error(e.message ?: "Database connection not found")
         } catch (e: Exception) {
-            ToolResult.Error("SQL 报错: ${e.message}")
+            ToolResult.Error("SQL error: ${e.message}")
         }
     }
 }

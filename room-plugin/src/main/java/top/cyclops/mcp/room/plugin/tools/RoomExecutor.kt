@@ -12,9 +12,9 @@ class RoomExecutor(
         val provider = providers[databaseName]
             ?: throw IllegalStateException(
                 if (providers.isEmpty()) {
-                    "未找到任何数据库连接: 请实现 McpRoom2Provider 或 McpRoom3Provider 并通过 @IntoSet 注册"
+                                        "No database providers registered. Please implement McpRoom2Provider or McpRoom3Provider and register via @IntoSet"
                 } else {
-                    "未找到数据库: $databaseName，可用数据库: ${providers.keys.joinToString()}"
+                    "Database not found: $databaseName. Available databases: ${providers.keys.joinToString()}"
                 }
             )
         return when (provider) {

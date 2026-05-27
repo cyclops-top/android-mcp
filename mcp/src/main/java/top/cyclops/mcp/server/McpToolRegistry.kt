@@ -40,23 +40,23 @@ class McpToolRegistry @Inject constructor(
             val name = annotation.name.ifEmpty { function.name }
             val description = annotation.description
 
-            // 1. 动态生成 Schema：根据 Kotlin 函数的参数自动拼装 JSON Schema
+            // Dynamically generate JSON Schema from Kotlin function parameters
             val propertiesObj = buildJsonObject {
                 function.parameters.forEach { param ->
-                    // 跳过 INSTANCE (类本身)
+                    // Skip INSTANCE (the class itself)
                     if (param.kind != KParameter.Kind.INSTANCE) {
                         val paramName = param.name ?: return@forEach
                         val mcpParam = param.findAnnotation<McpParam>()
                         put(paramName, buildJsonObject {
-                            // 默认按 string 处理，实际可根据 param.type 进阶映射类型
+                            // Default to string type; could map by param.type for richer types
                             put("type", "string")
-                            put("description", mcpParam?.description ?: "参数 $paramName")
+                                                    put("description", mcpParam?.description ?: "Parameter: $paramName")
                         })
                     }
                 }
             }
 
-            // 提取必填参数
+            // Extract required parameters
             val requiredList = function.parameters
                 .filter { it.kind != KParameter.Kind.INSTANCE && !it.isOptional }
                 .mapNotNull { it.name }
@@ -68,10 +68,10 @@ class McpToolRegistry @Inject constructor(
                     required = requiredList
                 ),
                 handler = { args ->
-                    // 2. 修复反射调用：将 instance 实例传入参数转换器
+                    // Pass the instance to the argument converter for reflective invocation
                     val params = convertArgs(instance, args, function.parameters)
                     val result = withContext(Dispatchers.IO) {
-                        // 3. 安全调用：兼容 suspend 挂起函数
+                        // Safe call: handles both regular and suspend functions
                         if (function.isSuspend) {
                             function.callSuspend(*params)
                         } else {
@@ -102,7 +102,7 @@ class McpToolRegistry @Inject constructor(
         args: Map<String, Any>,
         parameters: List<KParameter>
     ): Array<Any?> = parameters.map { param ->
-        // 修复 1：KParameter.Kind.INSTANCE 必须返回目标对象实例，决不能返回 null
+        // KParameter.Kind.INSTANCE must return the target object instance, never null
         if (param.kind == KParameter.Kind.INSTANCE) return@map instance
 
         val paramName = param.name ?: return@map null
@@ -115,7 +115,7 @@ class McpToolRegistry @Inject constructor(
             is String -> value
             is Number -> value
             is Boolean -> value
-            else -> value.toString() // 兜底处理
+                        else -> value.toString() // fallback
         }
     }
 
