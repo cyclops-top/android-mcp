@@ -15,6 +15,7 @@ mcp = "0.12.0"
 ktor = "3.5.0"
 appstartup = "1.2.0"
 appcompat = "1.7.1"
+sqlite = "2.6.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +44,7 @@ ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-conte
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 androidx-appstartup = { group = "androidx.startup", name = "startup-runtime", version.ref = "appstartup" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-sqlite = { group = "androidx.sqlite", name = "sqlite-android", version.ref = "sqlite" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

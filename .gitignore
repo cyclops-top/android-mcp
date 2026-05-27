@@ -19,5 +19,6 @@ local.properties
 common/build/
 mcp/build/
 sample/build/
+room-plugin-core/build/
 .kotlin/
 .codegraph/

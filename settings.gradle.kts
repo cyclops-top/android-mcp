@@ -26,4 +26,4 @@ rootProject.name = "AndroidMcp"
 include(":sample")
 include(":common")
 include(":mcp")
-include(":room-plugin")
+include(":room-plugin-core")
