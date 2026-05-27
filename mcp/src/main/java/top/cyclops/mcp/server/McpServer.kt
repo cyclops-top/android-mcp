@@ -125,7 +125,27 @@ class McpServer @Inject constructor(
                     mcpServerInstance
                 }
             }.start(wait = false)
-            Log.i(TAG, "🚀 MCP Server started at http://${config.host}:${config.port}/")
+            Log.i(TAG, buildString {
+                val w = 64 // content width inside borders
+                fun String.pad() = this + " ".repeat((w - this.length).coerceAtLeast(0))
+
+                appendLine()
+                appendLine("╔══════════════════════════════════════════════════════════════════╗")
+                appendLine("║${"  MCP Server started — ${config.name}".pad()}║")
+                appendLine("╠══════════════════════════════════════════════════════════════════╣")
+                appendLine("║${"  Port: ${config.port}".pad()}║")
+                appendLine("║${"".pad()}║")
+                appendLine("║${"  Map port to local machine (clear conflicts first):".pad()}║")
+                appendLine("║${"    adb forward --remove tcp:${config.port}".pad()}║")
+                appendLine("║${"    adb forward tcp:${config.port} tcp:${config.port}".pad()}║")
+                appendLine("║${"".pad()}║")
+                appendLine("║${"  Check existing mappings:".pad()}║")
+                appendLine("║${"    adb forward --list".pad()}║")
+                appendLine("║${"".pad()}║")
+                appendLine("║${"  MCP Client URL (SSE):".pad()}║")
+                appendLine("║${"    http://localhost:${config.port}/".pad()}║")
+                appendLine("╚══════════════════════════════════════════════════════════════════╝")
+            })
         }
     }
 
