@@ -1,4 +1,4 @@
-package top.cyclops.mcp.room.plugin.tools
+package top.cyclops.mcp.room.plugin.tool
 
 import android.content.Context
 import dagger.hilt.android.EntryPointAccessors
@@ -10,6 +10,7 @@ import top.cyclops.mcp.common.ToolResult
 import top.cyclops.mcp.room.plugin.core.McpRoom2Provider
 import top.cyclops.mcp.room.plugin.core.McpRoom3Provider
 import top.cyclops.mcp.room.plugin.di.RoomPluginEntryPoint
+import top.cyclops.mcp.room.plugin.tools.RoomExecutor
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.jvm.optionals.getOrNull
@@ -48,7 +49,7 @@ class RoomMcpToolMarker @Inject constructor(
 
     @McpTool(
         name = "execute_sql",
-        description = "在设备上的 Room 数据库执行原生 SQL 并返回 CSV 数据。⚠️ 强烈警告：为了防止数据量过大导致内存溢出，所有的 SELECT 查询必须显式包含 LIMIT 子句（建议 LIMIT 20）！"
+        description = "在设备上的 Room 数据库执行原生 SQL 并返回 CSV 数据。警告：为了防止数据量过大导致内存溢出，所有的 SELECT 查询必须显式包含 LIMIT 子句（建议 LIMIT 20）！"
     )
     suspend fun executeSql(
         @McpParam(name = "sql", description = "要执行的原生 SQLite 语句（示例：SELECT * FROM user_table LIMIT 10）")

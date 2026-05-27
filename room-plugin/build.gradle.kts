@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -17,5 +19,9 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.sqlite)
+    implementation(project(":room-plugin-core"))
+    implementation(project(":mcp"))
+    implementation(project(":common"))
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
 }

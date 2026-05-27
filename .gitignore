@@ -20,5 +20,6 @@ common/build/
 mcp/build/
 sample/build/
 room-plugin-core/build/
+room-plugin/build/
 .kotlin/
 .codegraph/

@@ -6,7 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import top.cyclops.mcp.common.McpToolMarker
-import top.cyclops.mcp.room.plugin.tools.RoomMcpToolMarker
+import top.cyclops.mcp.room.plugin.tool.RoomMcpToolMarker
 
 @Module
 @InstallIn(SingletonComponent::class)
