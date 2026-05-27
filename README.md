@@ -1,6 +1,8 @@
 # AndroidMcp
 
-MCP (Model Context Protocol) server library for Android. Embed an MCP server directly inside your Android app — AI agents can query databases, invoke business logic, and interact with your app at runtime through the standard MCP protocol.
+MCP (Model Context Protocol) server library for Android. Embed an MCP server directly inside your
+Android app — AI agents can query databases, invoke business logic, and interact with your app at
+runtime through the standard MCP protocol.
 
 ## Architecture
 
@@ -88,15 +90,16 @@ Then add to your MCP client config:
 
 ## Modules
 
-| Module | Purpose | Ships in release |
-|--------|---------|:---:|
-| `common` | Shared types: `McpConfig`, `McpToolMarker`, annotations, `ToolResult` | Yes |
-| `mcp` | Ktor server, `McpToolRegistry`, auto-start via AppStartup | Yes |
-| `room-plugin-core` | Abstract interfaces: `McpRoomProvider`, `McpRoom2Provider`, `McpRoom3Provider` | Yes |
-| `room-plugin` | Room database MCP tools: `list_databases`, `inspect_schema`, `execute_sql` | Debug only |
-| `sample` | Demo app with Room database + tools | — |
+| Module             | Purpose                                                                        | Ships in release |
+|--------------------|--------------------------------------------------------------------------------|:----------------:|
+| `common`           | Shared types: `McpConfig`, `McpToolMarker`, annotations, `ToolResult`          |       Yes        |
+| `mcp`              | Ktor server, `McpToolRegistry`, auto-start via AppStartup                      |       Yes        |
+| `room-plugin-core` | Abstract interfaces: `McpRoomProvider`, `McpRoom2Provider`, `McpRoom3Provider` |       Yes        |
+| `room-plugin`      | Room database MCP tools: `list_databases`, `inspect_schema`, `execute_sql`     |    Debug only    |
+| `sample`           | Demo app with Room database + tools                                            |        —         |
 
-The split between `room-plugin-core` (always included, no MCP dependency) and `room-plugin` (debug-only, depends on `:mcp`) means Room database support never ships in release builds.
+The split between `room-plugin-core` (always included, no MCP dependency) and `room-plugin` (
+debug-only, depends on `:mcp`) means Room database support never ships in release builds.
 
 ## Room Plugin
 
@@ -134,7 +137,8 @@ object AppModule {
 
 ## Creating Custom Plugins
 
-Any class implementing `McpToolMarker` with `@McpTool`-annotated methods is auto-discovered. Register it via Hilt `@IntoSet`:
+Any class implementing `McpToolMarker` with `@McpTool`-annotated methods is auto-discovered.
+Register it via Hilt `@IntoSet`:
 
 ```kotlin
 @Module

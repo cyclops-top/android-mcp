@@ -9,7 +9,7 @@ class SampleRoom2Provider @Inject constructor(
     private val database: AppDatabase,
 ) : McpRoom2Provider {
     override val name: String = "sample.db"
-        override val description: String = "Sample user database with a users table (id, name, email)"
+    override val description: String = "Sample user database with a users table (id, name, email)"
 
     override fun getReadableDatabase(): SupportSQLiteDatabase {
         return database.openHelper.readableDatabase

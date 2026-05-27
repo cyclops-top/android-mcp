@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <application
-        android:usesCleartextTraffic="true">
+    <application android:usesCleartextTraffic="true">
         <service
             android:name=".server.McpServerService"
             android:exported="false"
@@ -16,12 +16,11 @@
                 android:value="MCP Server for Model Context Protocol" />
         </service>
 
-        <provider
+        <provider xmlns:tools="http://schemas.android.com/tools"
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false"
-            tools:node="merge"
-            xmlns:tools="http://schemas.android.com/tools">
+            tools:node="merge">
             <meta-data
                 android:name="top.cyclops.mcp.di.McpServerInitializer"
                 android:value="androidx.startup" />

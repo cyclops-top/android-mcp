@@ -40,7 +40,7 @@ class McpServerService : Service() {
 
         serviceScope.launch {
             try {
-                 mcpServer.start()
+                mcpServer.start()
                 val tools = mcpServer.tools
                 Log.i(TAG, "MCP Server started successfully")
                 Log.i(TAG, "MCP Server info: name=${config.name}, port=${config.port}")

@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this
+repository.
 
 ## Build Commands
 
@@ -13,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 
 Single test execution:
+
 ```bash
 ./gradlew test --tests "top.cyclops.mcp.*"
 ./gradlew connectedAndroidTest --tests "top.cyclops.mcp.*"
@@ -20,17 +22,21 @@ Single test execution:
 
 ## Architecture
 
-This is an **Android library** for MCP (Model Context Protocol) server implementation on Android. The library provides dependency injection via Hilt, runs an MCP server using Ktor, and uses dynamic proxy annotation processing (similar to Retrofit) to auto-register MCP tools.
+This is an **Android library** for MCP (Model Context Protocol) server implementation on Android.
+The library provides dependency injection via Hilt, runs an MCP server using Ktor, and uses dynamic
+proxy annotation processing (similar to Retrofit) to auto-register MCP tools.
 
 ### Key Structure
+
 - `app/src/main/java/top/cyclops/mcp/` - Main library code
-  - `di/` - Hilt modules for dependency injection
-  - `mcp/` - MCP server implementation using Ktor
-  - `annotation/` - Annotations for tool/resource/prompt registration
-  - `processor/` - Annotation processors for dynamic proxy generation
+    - `di/` - Hilt modules for dependency injection
+    - `mcp/` - MCP server implementation using Ktor
+    - `annotation/` - Annotations for tool/resource/prompt registration
+    - `processor/` - Annotation processors for dynamic proxy generation
 - `app/src/main/res/` - Android resources
 
 ### Technology Stack
+
 - **Kotlin MCP SDK** - Official Kotlin SDK for MCP protocol
 - **Ktor** - Embedded server for running MCP on Android
 - **Hilt** - Dependency injection
@@ -51,15 +57,18 @@ The processor generates a dynamic proxy that handles JSON-RPC serialization/dese
 ### Running MCP Server
 
 The library provides a Ktor-based server that:
+
 1. Receives MCP JSON-RPC requests
 2. Routes to registered tools via generated proxies
 3. Returns responses via the MCP protocol
 
 ## Local Configuration
 
-Local settings in `.claude/settings.local.json` grant permissions for `rtk ls` and `rtk find` commands.
+Local settings in `.claude/settings.local.json` grant permissions for `rtk ls` and `rtk find`
+commands.
 
 <!-- code-review-graph MCP tools -->
+
 ## MCP Tools: code-review-graph
 
 **IMPORTANT: This project has a knowledge graph. ALWAYS use the
@@ -80,16 +89,16 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 
 ### Key Tools
 
-| Tool | Use when |
-| ------ | ---------- |
-| `detect_changes` | Reviewing code changes — gives risk-scored analysis |
-| `get_review_context` | Need source snippets for review — token-efficient |
-| `get_impact_radius` | Understanding blast radius of a change |
-| `get_affected_flows` | Finding which execution paths are impacted |
-| `query_graph` | Tracing callers, callees, imports, tests, dependencies |
-| `semantic_search_nodes` | Finding functions/classes by name or keyword |
-| `get_architecture_overview` | Understanding high-level codebase structure |
-| `refactor_tool` | Planning renames, finding dead code |
+| Tool                        | Use when                                               |
+|-----------------------------|--------------------------------------------------------|
+| `detect_changes`            | Reviewing code changes — gives risk-scored analysis    |
+| `get_review_context`        | Need source snippets for review — token-efficient      |
+| `get_impact_radius`         | Understanding blast radius of a change                 |
+| `get_affected_flows`        | Finding which execution paths are impacted             |
+| `query_graph`               | Tracing callers, callees, imports, tests, dependencies |
+| `semantic_search_nodes`     | Finding functions/classes by name or keyword           |
+| `get_architecture_overview` | Understanding high-level codebase structure            |
+| `refactor_tool`             | Planning renames, finding dead code                    |
 
 ### Workflow
 

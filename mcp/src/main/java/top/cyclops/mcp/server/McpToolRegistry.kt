@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kotlinx.serialization.json.JsonObjectBuilder
 import top.cyclops.mcp.common.McpParam
 import top.cyclops.mcp.common.McpTool
 import top.cyclops.mcp.common.McpToolMarker
@@ -50,7 +49,7 @@ class McpToolRegistry @Inject constructor(
                         put(paramName, buildJsonObject {
                             // Default to string type; could map by param.type for richer types
                             put("type", "string")
-                                                    put("description", mcpParam?.description ?: "Parameter: $paramName")
+                            put("description", mcpParam?.description ?: "Parameter: $paramName")
                         })
                     }
                 }
@@ -115,7 +114,7 @@ class McpToolRegistry @Inject constructor(
             is String -> value
             is Number -> value
             is Boolean -> value
-                        else -> value.toString() // fallback
+            else -> value.toString() // fallback
         }
     }
 

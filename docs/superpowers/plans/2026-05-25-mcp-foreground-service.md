@@ -1,10 +1,15 @@
 # MCP Foreground Service Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (
+> recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use
+> checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement a foreground service in the `mcp` module that runs an MCP server via Ktor, with configuration and tools injected via Hilt DI. The service auto-starts via AppStartup.
+**Goal:** Implement a foreground service in the `mcp` module that runs an MCP server via Ktor, with
+configuration and tools injected via Hilt DI. The service auto-starts via AppStartup.
 
-**Architecture:** Foreground service hosts a Ktor server that exposes MCP protocol. Tools are discovered via DI (multi-binding) and registered dynamically through annotation processing. App module provides config and tool implementations.
+**Architecture:** Foreground service hosts a Ktor server that exposes MCP protocol. Tools are
+discovered via DI (multi-binding) and registered dynamically through annotation processing. App
+module provides config and tool implementations.
 
 **Tech Stack:** Kotlin MCP SDK 0.12.0, Ktor, Hilt, AppStartup, Foreground Service
 
@@ -47,6 +52,7 @@ common/src/main/java/top/cyclops/mcp/common/
 ### Task 1: Add Ktor and AppStartup dependencies
 
 **Files:**
+
 - Modify: `gradle/libs.versions.toml`
 - Modify: `mcp/build.gradle.kts`
 
@@ -82,6 +88,7 @@ dependencies {
 ### Task 2: Create ToolResultMapper (mcp module)
 
 **Files:**
+
 - Create: `mcp/src/main/java/top/cyclops/mcp/ToolResultMapper.kt`
 
 - [ ] **Step 1: Create ToolResultMapper**
@@ -115,6 +122,7 @@ object ToolResultMapper {
 ### Task 3: Create McpToolRegistry
 
 **Files:**
+
 - Create: `mcp/src/main/java/top/cyclops/mcp/server/McpToolRegistry.kt`
 
 - [ ] **Step 1: Create McpToolRegistry**
@@ -198,6 +206,7 @@ class McpToolRegistry @Inject constructor() {
 ### Task 4: Create McpServer wrapper
 
 **Files:**
+
 - Create: `mcp/src/main/java/top/cyclops/mcp/server/McpServer.kt`
 
 - [ ] **Step 1: Create McpServer**
@@ -277,6 +286,7 @@ class McpServer @Inject constructor(
 ### Task 5: Create Foreground Service
 
 **Files:**
+
 - Create: `mcp/src/main/java/top/cyclops/mcp/server/McpServerService.kt`
 
 - [ ] **Step 1: Create Foreground Service**
@@ -365,6 +375,7 @@ class McpServerService : Service() {
 ### Task 6: Create Hilt DI Module
 
 **Files:**
+
 - Create: `mcp/src/main/java/top/cyclops/mcp/di/McpModule.kt`
 
 - [ ] **Step 1: Create Hilt Module**
@@ -406,6 +417,7 @@ object McpModule {
 ### Task 7: Create App Startup Initializer
 
 **Files:**
+
 - Create: `mcp/src/main/java/top/cyclops/mcp/di/McpServerInitializer.kt`
 
 - [ ] **Step 1: Create Initializer**
@@ -430,6 +442,7 @@ class McpServerInitializer : Initializer<Unit> {
 - [ ] **Step 2: Add to AndroidManifest.xml (mcp module)**
 
 In `<application>`:
+
 ```xml
 <provider
     android:name="androidx.startup.InitializationProvider"
@@ -447,6 +460,7 @@ In `<application>`:
 ### Task 8: Create Test Tool
 
 **Files:**
+
 - Create: `sample/src/main/java/top/cyclops/mcp/sample/tools/TestTool.kt`
 
 - [ ] **Step 1: Create TestTool**
@@ -481,6 +495,7 @@ class TestTool @Inject constructor() : McpToolMarker {
 ### Task 9: Create App DI Module
 
 **Files:**
+
 - Create: `sample/src/main/java/top/cyclops/mcp/sample/di/AppMcpModule.kt`
 
 - [ ] **Step 1: Create App DI Module**
@@ -525,6 +540,7 @@ object AppMcpModule {
 ### Task 10: Update sample AndroidManifest
 
 **Files:**
+
 - Modify: `sample/src/main/AndroidManifest.xml`
 
 - [ ] **Step 1: Add permissions and service**
@@ -573,6 +589,7 @@ class McpSampleApplication : Application()
 ```
 
 Expected:
+
 - Build succeeds
 - MCP server service registered
 - TestTool registered via DI
@@ -582,8 +599,10 @@ Expected:
 
 ## Potential Gaps
 
-1. **Ktor transport**: MCP SDK 0.12.0 may use stdio transport by default for Android. May need to verify Ktor integration works for Android foreground service scenario.
-2. **Multi-binding**: For multiple tool classes, consider using `Set<McpToolMarker>` injection instead of individual registration.
+1. **Ktor transport**: MCP SDK 0.12.0 may use stdio transport by default for Android. May need to
+   verify Ktor integration works for Android foreground service scenario.
+2. **Multi-binding**: For multiple tool classes, consider using `Set<McpToolMarker>` injection
+   instead of individual registration.
 3. **AppStartup manifest merger**: Ensure meta-data is properly merged in final APK.
 
 **Which approach for execution?**

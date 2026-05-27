@@ -12,7 +12,7 @@ class RoomExecutor(
         val provider = providers[databaseName]
             ?: throw IllegalStateException(
                 if (providers.isEmpty()) {
-                                        "No database providers registered. Please implement McpRoom2Provider or McpRoom3Provider and register via @IntoSet"
+                    "No database providers registered. Please implement McpRoom2Provider or McpRoom3Provider and register via @IntoSet"
                 } else {
                     "Database not found: $databaseName. Available databases: ${providers.keys.joinToString()}"
                 }
@@ -23,6 +23,7 @@ class RoomExecutor(
                     CsvConverter.statementToCsv(stmt)
                 }
             }
+
             is McpRoom2Provider -> {
                 val db = provider.getReadableDatabase()
                 val cursor = db.query(sql)

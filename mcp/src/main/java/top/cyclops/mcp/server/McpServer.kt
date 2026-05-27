@@ -95,11 +95,14 @@ class McpServer @Inject constructor(
                         onCall { call ->
                             Log.d(
                                 TAG,
-                                                            "🔗 [Incoming Request] -> ${call.request.uri} : ${call.request.httpMethod.value}"
+                                "🔗 [Incoming Request] -> ${call.request.uri} : ${call.request.httpMethod.value}"
                             )
                         }
                         onCallRespond { call ->
-                                                    Log.d(TAG, "📤 [Outgoing Response] <- Status: ${call.response.status()?.value}")
+                            Log.d(
+                                TAG,
+                                "📤 [Outgoing Response] <- Status: ${call.response.status()?.value}"
+                            )
                         }
                     }
                     install(androidLogPlugin)

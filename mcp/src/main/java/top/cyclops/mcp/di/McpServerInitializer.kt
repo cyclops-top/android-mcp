@@ -1,9 +1,9 @@
 package top.cyclops.mcp.di
 
 import android.content.Context
+import android.content.Intent
 import androidx.startup.Initializer
 import top.cyclops.mcp.server.McpServerService
-import android.content.Intent
 
 class McpServerInitializer : Initializer<Unit> {
     override fun create(context: Context) {
