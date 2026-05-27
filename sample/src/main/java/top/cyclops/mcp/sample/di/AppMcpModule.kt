@@ -19,7 +19,7 @@ object AppMcpModule {
     fun provideMcpConfig(): McpConfig {
         return McpConfig(
             name = "android-mcp-sample",
-            port = 9876,
+            port = 11432,
         )
     }
 

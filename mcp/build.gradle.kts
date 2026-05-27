@@ -27,7 +27,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.mcp.sdk)
-    implementation(libs.mcp.sdk.server)
+//    implementation(libs.mcp.sdk.server)
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.ktor.server.core)

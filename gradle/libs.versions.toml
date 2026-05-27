@@ -6,15 +6,15 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
-kotlin = "2.2.10"
-composeBom = "2026.05.00"
+kotlin = "2.3.21"
+composeBom = "2026.05.01"
 hilt = "2.59.2"
 ksp = "2.3.6"
-kotlinxSerialization = "1.7.3"
+kotlinxSerialization = "1.11.0"
 mcp = "0.12.0"
-ktor = "3.0.2"
-appstartup = "1.1.0"
-appcompat = "1.7.0"
+ktor = "3.5.0"
+appstartup = "1.2.0"
+appcompat = "1.7.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,7 +35,6 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 mcp-sdk = { group = "io.modelcontextprotocol", name = "kotlin-sdk", version.ref = "mcp" }
-mcp-sdk-server = { group = "io.modelcontextprotocol", name = "kotlin-sdk-server-jvm", version.ref = "mcp" }
 ktor-server-cio = { group = "io.ktor", name = "ktor-server-cio", version.ref = "ktor" }
 ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
 ktor-server-cors = { group = "io.ktor", name = "ktor-server-cors", version.ref = "ktor" }

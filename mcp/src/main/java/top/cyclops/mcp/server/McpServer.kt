@@ -5,23 +5,20 @@ import io.ktor.http.HttpMethod
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
-import io.ktor.server.engine.embeddedServer
 import io.ktor.server.cio.CIO
+import io.ktor.server.engine.embeddedServer
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.request.httpMethod
-import io.ktor.server.request.receiveText
 import io.ktor.server.request.uri
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.mcp
-import io.modelcontextprotocol.kotlin.sdk.server.mcpStreamableHttp
 import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import io.modelcontextprotocol.kotlin.sdk.types.Tool
-import io.modelcontextprotocol.kotlin.sdk.types.ToolSchema
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -30,15 +27,14 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.longOrNull
-import kotlinx.serialization.json.put
 import top.cyclops.mcp.common.McpConfig
 import top.cyclops.mcp.common.ToolResult
 import javax.inject.Inject
 import javax.inject.Singleton
+
 
 @Singleton
 class McpServer @Inject constructor(
@@ -56,7 +52,7 @@ class McpServer @Inject constructor(
                 tools = ServerCapabilities.Tools(listChanged = false)
             )
         )
-    ).also {server ->
+    ).also { server ->
 
         toolRegistry.getToolDefinitions().forEach { toolDef ->
             val tool = Tool(
@@ -76,10 +72,12 @@ class McpServer @Inject constructor(
                     is ToolResult.Text -> CallToolResult(
                         content = listOf(TextContent(text = result.value))
                     )
+
                     is ToolResult.Error -> CallToolResult(
                         content = listOf(TextContent(text = "Error: ${result.message}")),
                         isError = true
                     )
+
                     is ToolResult.Image -> CallToolResult(
                         content = listOf(TextContent(text = "[Image]"))
                     )
@@ -94,7 +92,10 @@ class McpServer @Inject constructor(
 
                 val androidLogPlugin = createApplicationPlugin("AndroidLogPlugin") {
                     onCall { call ->
-                        Log.d(TAG, "🔗 [网络请求入站] -> ${call.request.uri} : ${call.request.httpMethod.value}")
+                        Log.d(
+                            TAG,
+                            "🔗 [网络请求入站] -> ${call.request.uri} : ${call.request.httpMethod.value}"
+                        )
                     }
                     onCallRespond { call ->
                         Log.d(TAG, "📤 [网络响应出站] <- 状态码: ${call.response.status()?.value}")
@@ -115,10 +116,6 @@ class McpServer @Inject constructor(
                         isLenient = true
                     })
                 }
-//                mcpStreamableHttp {
-//                    server
-//                }
-
                 mcp {
                     mcpServerInstance
                 }
@@ -144,9 +141,11 @@ class McpServer @Inject constructor(
                 ?: element.doubleOrNull
                 ?: element.booleanOrNull
         }
+
         else -> null
     }
-    companion object{
+
+    companion object {
         const val TAG = "McpServer"
     }
 }
