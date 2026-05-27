@@ -27,10 +27,8 @@ class RoomExecutor(
             is McpRoom2Provider -> {
                 val db = provider.getReadableDatabase()
                 val cursor = db.query(sql)
-                try {
+                cursor.use { cursor ->
                     CsvConverter.cursorToCsv(cursor)
-                } finally {
-                    cursor.close()
                 }
             }
         }

@@ -55,9 +55,13 @@ class McpToolRegistry @Inject constructor(
                 }
             }
 
-            // Extract required parameters
+            // Extract required parameters (respected both Kotlin default values and @McpParam)
             val requiredList = function.parameters
-                .filter { it.kind != KParameter.Kind.INSTANCE && !it.isOptional }
+                .filter { param ->
+                    param.kind != KParameter.Kind.INSTANCE &&
+                    !param.isOptional &&
+                    param.findAnnotation<McpParam>()?.required != false
+                }
                 .mapNotNull { it.name }
 
             tools[name] = ToolHandler(

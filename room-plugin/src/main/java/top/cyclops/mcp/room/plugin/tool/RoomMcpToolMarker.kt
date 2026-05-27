@@ -51,9 +51,10 @@ class RoomMcpToolMarker @Inject constructor(
     suspend fun inspectSchema(
         @McpParam(
             name = "database",
-            description = "Database name. Use list_databases to see available databases. If only one database exists, you may pass an empty string."
+            description = "Database name (optional, defaults to the first available database). Use list_databases to see available databases.",
+            required = false
         )
-        database: String,
+        database: String?,
     ): ToolResult {
         val sql = """
             SELECT name as TableName, sql as DDL
@@ -63,11 +64,7 @@ class RoomMcpToolMarker @Inject constructor(
               AND name NOT LIKE 'room_%'
               AND name != 'android_metadata'
         """.trimIndent()
-        val targetDb = if (providerMap.size == 1 && database.isBlank()) {
-            providerMap.keys.first()
-        } else {
-            database
-        }
+        val targetDb = database?.takeIf { it.isNotEmpty() }?: providerMap.keys.first()
         return executeSqlInternal(targetDb, sql)
     }
 
@@ -78,20 +75,17 @@ class RoomMcpToolMarker @Inject constructor(
     suspend fun executeSql(
         @McpParam(
             name = "database",
-            description = "Database name. Use list_databases to see available databases. If only one database exists, you may pass an empty string."
+            description = "Database name (optional, defaults to the first available database). Use list_databases to see available databases.",
+            required = false
         )
-        database: String,
+        database: String?,
         @McpParam(
             name = "sql",
             description = "Raw SQLite statement to execute (example: SELECT * FROM user_table LIMIT 10)"
         )
         sql: String
     ): ToolResult {
-        val targetDb = if (providerMap.size == 1 && database.isBlank()) {
-            providerMap.keys.first()
-        } else {
-            database
-        }
+        val targetDb = database?.takeIf { it.isNotEmpty() }?: providerMap.keys.first()
         return executeSqlInternal(targetDb, sql)
     }
 
