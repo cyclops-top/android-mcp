@@ -23,6 +23,14 @@ android {
 
     buildFeatures {
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
+    lint {
+        disable += "EnsureInitializerMetadata"
+    }
 }
 
 dependencies {
@@ -39,8 +47,9 @@ dependencies {
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.appstartup)
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 

@@ -13,7 +13,8 @@ import top.cyclops.mcp.common.ToolResult
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.callSuspend
+import kotlin.reflect.KType
+import kotlin.reflect.full.callSuspendBy
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.functions
 
@@ -44,11 +45,10 @@ class McpToolRegistry @Inject constructor(
                 function.parameters.forEach { param ->
                     // Skip INSTANCE (the class itself)
                     if (param.kind != KParameter.Kind.INSTANCE) {
-                        val paramName = param.name ?: return@forEach
+                        val paramName = param.toolParameterName() ?: return@forEach
                         val mcpParam = param.findAnnotation<McpParam>()
                         put(paramName, buildJsonObject {
-                            // Default to string type; could map by param.type for richer types
-                            put("type", "string")
+                            put("type", param.type.toJsonSchemaType())
                             put("description", mcpParam?.description ?: "Parameter: $paramName")
                         })
                     }
@@ -62,7 +62,7 @@ class McpToolRegistry @Inject constructor(
                     !param.isOptional &&
                     param.findAnnotation<McpParam>()?.required != false
                 }
-                .mapNotNull { it.name }
+                .mapNotNull { it.toolParameterName() }
 
             tools[name] = ToolHandler(
                 description = description,
@@ -71,17 +71,22 @@ class McpToolRegistry @Inject constructor(
                     required = requiredList
                 ),
                 handler = { args ->
-                    // Pass the instance to the argument converter for reflective invocation
-                    val params = convertArgs(instance, args, function.parameters)
-                    val result = withContext(Dispatchers.IO) {
-                        // Safe call: handles both regular and suspend functions
-                        if (function.isSuspend) {
-                            function.callSuspend(*params)
-                        } else {
-                            function.call(*params)
+                    try {
+                        val params = convertArgs(instance, args, function.parameters)
+                        val result = withContext(Dispatchers.IO) {
+                            // Safe call: handles both regular and suspend functions
+                            if (function.isSuspend) {
+                                function.callSuspendBy(params)
+                            } else {
+                                function.callBy(params)
+                            }
                         }
+                        (result as? ToolResult) ?: ToolResult.Error("Invalid return type")
+                    } catch (e: IllegalArgumentException) {
+                        ToolResult.Error(e.message ?: "Invalid arguments")
+                    } catch (e: Exception) {
+                        ToolResult.Error("Tool execution failed: ${e.message}")
                     }
-                    (result as? ToolResult) ?: ToolResult.Error("Invalid return type")
                 }
             )
             Log.d(TAG, "  registered: $name")
@@ -104,21 +109,49 @@ class McpToolRegistry @Inject constructor(
         instance: McpToolMarker,
         args: Map<String, Any>,
         parameters: List<KParameter>
-    ): Array<Any?> = parameters.map { param ->
-        // KParameter.Kind.INSTANCE must return the target object instance, never null
-        if (param.kind == KParameter.Kind.INSTANCE) return@map instance
+    ): Map<KParameter, Any?> = buildMap {
+        parameters.forEach { param ->
+            if (param.kind == KParameter.Kind.INSTANCE) {
+                put(param, instance)
+                return@forEach
+            }
 
-        val paramName = param.name ?: return@map null
-        val value = args[paramName] ?: return@map null
-        convertValue(value, param)
-    }.toTypedArray()
+            val paramName = param.toolParameterName() ?: return@forEach
+            val hasValue = args.containsKey(paramName)
+            if (!hasValue) {
+                if (param.isOptional || param.type.isMarkedNullable || param.findAnnotation<McpParam>()?.required == false) {
+                    return@forEach
+                }
+                throw IllegalArgumentException("Missing required parameter: $paramName")
+            }
+            put(param, convertValue(args[paramName], param))
+        }
+    }
 
-    private fun convertValue(value: Any, param: KParameter): Any? {
-        return when (value) {
-            is String -> value
-            is Number -> value
-            is Boolean -> value
-            else -> value.toString() // fallback
+    private fun convertValue(value: Any?, param: KParameter): Any? {
+        if (value == null) return null
+        return when (param.type.classifier) {
+            String::class -> value.toString()
+            Int::class -> value.toString().toIntOrNull()
+            Long::class -> value.toString().toLongOrNull()
+            Float::class -> value.toString().toFloatOrNull()
+            Double::class -> value.toString().toDoubleOrNull()
+            Boolean::class -> value.toString().toBooleanStrictOrNull()
+            else -> value
+        } ?: throw IllegalArgumentException("Invalid value for parameter: ${param.toolParameterName()}")
+    }
+
+    private fun KParameter.toolParameterName(): String? {
+        val annotatedName = findAnnotation<McpParam>()?.name?.takeIf { it.isNotEmpty() }
+        return annotatedName ?: name
+    }
+
+    private fun KType.toJsonSchemaType(): String {
+        return when (classifier) {
+            Int::class, Long::class -> "integer"
+            Float::class, Double::class -> "number"
+            Boolean::class -> "boolean"
+            else -> "string"
         }
     }
 

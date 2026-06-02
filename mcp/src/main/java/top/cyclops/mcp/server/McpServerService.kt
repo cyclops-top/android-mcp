@@ -12,6 +12,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import top.cyclops.mcp.common.McpConfig
 import javax.inject.Inject
@@ -61,6 +62,7 @@ class McpServerService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         mcpServer.stop()
+        serviceScope.cancel()
         Log.i(TAG, "MCP Server stopped")
     }
 

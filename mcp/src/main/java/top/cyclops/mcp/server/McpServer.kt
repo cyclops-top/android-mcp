@@ -6,6 +6,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
+import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
@@ -14,10 +15,9 @@ import io.ktor.server.request.uri
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.server.mcp
-import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
+import io.modelcontextprotocol.kotlin.sdk.server.mcpStreamableHttp
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
-import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import io.modelcontextprotocol.kotlin.sdk.types.Tool
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +31,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.longOrNull
 import top.cyclops.mcp.common.McpConfig
-import top.cyclops.mcp.common.ToolResult
+import top.cyclops.mcp.ToolResultMapper
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,6 +42,8 @@ class McpServer @Inject constructor(
     private val config: McpConfig
 ) {
     private var serverJob: Job? = null
+    @Volatile
+    private var engine: EmbeddedServer<*, *>? = null
     private val scope = CoroutineScope(Dispatchers.IO)
     private val _registeredTools = mutableListOf<Tool>()
     val tools: List<Tool> get() = _registeredTools
@@ -68,27 +70,15 @@ class McpServer @Inject constructor(
                 inputSchema = toolDef.inputSchema
             ) { request ->
                 val args = request.arguments?.toMap() ?: emptyMap()
-                when (val result = toolRegistry.executeTool(request.name, args)) {
-                    is ToolResult.Text -> CallToolResult(
-                        content = listOf(TextContent(text = result.value))
-                    )
-
-                    is ToolResult.Error -> CallToolResult(
-                        content = listOf(TextContent(text = "Error: ${result.message}")),
-                        isError = true
-                    )
-
-                    is ToolResult.Image -> CallToolResult(
-                        content = listOf(TextContent(text = "[Image]"))
-                    )
-                }
+                ToolResultMapper.toMcpResult(toolRegistry.executeTool(request.name, args))
             }
         }
     }
 
     fun start() {
+        if (engine != null || serverJob?.isActive == true) return
         serverJob = scope.launch {
-            embeddedServer(CIO, host = config.host, port = config.port) {
+            val startedEngine = embeddedServer(CIO, host = config.host, port = config.port) {
 
                 if (config.debug) {
                     val androidLogPlugin = createApplicationPlugin("AndroidLogPlugin") {
@@ -107,32 +97,19 @@ class McpServer @Inject constructor(
                     }
                     install(androidLogPlugin)
                 }
-                install(CORS) {
-                    anyHost()
-                    allowHeader("Content-Type")
-                    allowMethod(HttpMethod.Options)
-                    allowMethod(HttpMethod.Get)
-                    allowMethod(HttpMethod.Post)
-                }
-
-                install(ContentNegotiation) {
-                    json(Json {
-                        ignoreUnknownKeys = true
-                        isLenient = true
-                    })
-                }
-                mcp {
+                mcpStreamableHttp {
                     mcpServerInstance
                 }
             }.start(wait = false)
+            engine = startedEngine
             Log.i(TAG, buildString {
                 val w = 64 // content width inside borders
                 fun String.pad() = this + " ".repeat((w - this.length).coerceAtLeast(0))
 
                 appendLine()
-                appendLine("╔══════════════════════════════════════════════════════════════════╗")
+                appendLine("╔═════════════════════════════════════════════════════════════════╗")
                 appendLine("║${"  MCP Server started — ${config.name}".pad()}║")
-                appendLine("╠══════════════════════════════════════════════════════════════════╣")
+                appendLine("╠═════════════════════════════════════════════════════════════════╣")
                 appendLine("║${"  Port: ${config.port}".pad()}║")
                 appendLine("║${"".pad()}║")
                 appendLine("║${"  Map port to local machine (clear conflicts first):".pad()}║")
@@ -142,14 +119,16 @@ class McpServer @Inject constructor(
                 appendLine("║${"  Check existing mappings:".pad()}║")
                 appendLine("║${"    adb forward --list".pad()}║")
                 appendLine("║${"".pad()}║")
-                appendLine("║${"  MCP Client URL (SSE):".pad()}║")
+                appendLine("║${"  MCP Client URL (Streamable Http):".pad()}║")
                 appendLine("║${"    http://localhost:${config.port}/".pad()}║")
-                appendLine("╚══════════════════════════════════════════════════════════════════╝")
+                appendLine("╚═════════════════════════════════════════════════════════════════╝")
             })
         }
     }
 
     fun stop() {
+        engine?.stop(1000, 3000)
+        engine = null
         serverJob?.cancel()
         serverJob = null
     }
@@ -161,10 +140,14 @@ class McpServer @Inject constructor(
 
     private fun jsonElementToAny(element: JsonElement): Any? = when (element) {
         is JsonPrimitive -> {
-            element.contentOrNull?.takeIf { it.isNotEmpty() }
-                ?: element.longOrNull
-                ?: element.doubleOrNull
-                ?: element.booleanOrNull
+            if (element.toString().startsWith("\"")) {
+                element.contentOrNull?.takeIf { it.isNotEmpty() }
+            } else {
+                element.booleanOrNull
+                    ?: element.longOrNull
+                    ?: element.doubleOrNull
+                    ?: element.contentOrNull?.takeIf { it.isNotEmpty() }
+            }
         }
 
         else -> null

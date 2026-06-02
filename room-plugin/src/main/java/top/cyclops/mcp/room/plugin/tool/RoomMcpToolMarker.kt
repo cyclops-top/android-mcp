@@ -7,6 +7,7 @@ import top.cyclops.mcp.common.McpToolMarker
 import top.cyclops.mcp.common.ToolResult
 import top.cyclops.mcp.room.plugin.core.McpRoomProvider
 import top.cyclops.mcp.room.plugin.tools.RoomExecutor
+import top.cyclops.mcp.room.plugin.tools.SqlPolicy
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,7 +65,7 @@ class RoomMcpToolMarker @Inject constructor(
               AND name NOT LIKE 'room_%'
               AND name != 'android_metadata'
         """.trimIndent()
-        val targetDb = database?.takeIf { it.isNotEmpty() }?: providerMap.keys.first()
+        val targetDb = resolveDatabase(database) ?: return noProvidersError()
         return executeSqlInternal(targetDb, sql)
     }
 
@@ -85,8 +86,19 @@ class RoomMcpToolMarker @Inject constructor(
         )
         sql: String
     ): ToolResult {
-        val targetDb = database?.takeIf { it.isNotEmpty() }?: providerMap.keys.first()
+        SqlPolicy.validate(sql)?.let { return ToolResult.Error(it) }
+        val targetDb = resolveDatabase(database) ?: return noProvidersError()
         return executeSqlInternal(targetDb, sql)
+    }
+
+    private fun resolveDatabase(database: String?): String? {
+        return database?.takeIf { it.isNotEmpty() } ?: providerMap.keys.firstOrNull()
+    }
+
+    private fun noProvidersError(): ToolResult.Error {
+        return ToolResult.Error(
+            "No database providers registered. Please implement McpRoom2Provider or McpRoom3Provider and register via @IntoSet"
+        )
     }
 
     private suspend fun executeSqlInternal(database: String, sql: String): ToolResult {
