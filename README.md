@@ -10,7 +10,7 @@ runtime through the standard MCP protocol.
 ┌──────────────────────────────────────────┐
 │  AI Client (Claude Desktop / Cursor)     │
 └──────────────┬───────────────────────────┘
-               │ HTTP + SSE (via adb forward)
+               │ Streamable HTTP (via adb forward)
 ┌──────────────▼───────────────────────────┐
 │  Android Device                          │
 │  ┌────────────────────────────────────┐  │
@@ -24,7 +24,7 @@ runtime through the standard MCP protocol.
 │  │  └──────────────────────────────┘  │  │
 │  └────────────────────────────────────┘  │
 │  ┌────────────────────────────────────┐  │
-│  │  Plugins (room-plugin, ...)        │  │
+│  │  Plugins (android-mcp-room-tools)  │  │
 │  │  → @McpTool methods auto-registered│  │
 │  └────────────────────────────────────┘  │
 └──────────────────────────────────────────┘
@@ -82,7 +82,7 @@ Then add to your MCP client config:
 {
   "mcpServers": {
     "my-app": {
-      "url": "http://localhost:11432/sse"
+      "url": "http://localhost:11432/"
     }
   }
 }
@@ -90,23 +90,23 @@ Then add to your MCP client config:
 
 ## Modules
 
-| Module             | Purpose                                                                        | Ships in release |
-|--------------------|--------------------------------------------------------------------------------|:----------------:|
-| `common`           | Shared types: `McpConfig`, `McpToolMarker`, annotations, `ToolResult`          |       Yes        |
-| `mcp`              | Ktor server, `McpToolRegistry`, auto-start via AppStartup                      |       Yes        |
-| `android-mcp-room-core`  | Abstract interfaces: `McpDatabaseProvider`, `McpRoom2DatabaseProvider`, `McpRoom3DatabaseProvider` |       Yes        |
-| `android-mcp-room2`      | Room 2.x adapter defaults for `McpRoom2DatabaseProvider`                               |       Yes        |
-| `android-mcp-room3`      | Room 3.x adapter defaults for `McpRoom3DatabaseProvider`                               |       Yes        |
-| `android-mcp-room-tools` | Room database MCP tools: `list_databases`, `inspect_schema`, `execute_sql`     |    Debug only    |
-| `sample`           | Demo app with Room database + tools                                            |        —         |
+| Module                  | Purpose                                                                                       | Ships in release |
+|-------------------------|-----------------------------------------------------------------------------------------------|:----------------:|
+| `common`                | Shared types: `McpConfig`, `McpToolMarker`, annotations, `ToolResult`                         |       Yes        |
+| `mcp`                   | Ktor server, `McpToolRegistry`, auto-start via AppStartup                                     |       Yes        |
+| `android-mcp-room-core` | Abstract interfaces: `McpDatabaseProvider`, `McpRoom2DatabaseProvider`, `McpRoom3DatabaseProvider` |       Yes        |
+| `android-mcp-room2`     | Room 2.x adapter defaults for `McpRoom2DatabaseProvider`                                      |       Yes        |
+| `android-mcp-room3`     | Room 3.x adapter defaults for `McpRoom3DatabaseProvider`                                      |       Yes        |
+| `android-mcp-room-tools`| Debug MCP tools: `list_databases`, `inspect_schema`, `execute_sql`                            |    Debug only    |
+| `sample`                | Demo app with Room database + tools                                                           |        —         |
 
-The split between `android-mcp-room-core` (always included, no MCP dependency) and `android-mcp-room-tools` (
-debug-only, depends on `:mcp`) means Room database tooling should be added with
-`debugImplementation` and kept out of release builds.
+The split between `android-mcp-room-core` (always included, no MCP dependency) and
+`android-mcp-room-tools` (debug-only, depends on `:mcp`) means Room database tooling should be
+added with `debugImplementation` and kept out of release builds.
 
-## Room Plugin
+## Room Tools
 
-The built-in `room-plugin` exposes your Room databases as MCP tools:
+The built-in `android-mcp-room-tools` module exposes your Room databases as MCP tools:
 
 ```
 list_databases  → "sample.db - 示例用户数据库"
@@ -114,24 +114,28 @@ inspect_schema  → GET DDL for all tables
 execute_sql     → Run raw SQL, returns CSV
 ```
 
-`room-plugin` is intended for developer builds. By default, `execute_sql` allows write statements
-so developers can inspect and repair local debug data quickly. If your workflow needs a read-only
-debug surface, provide a `RoomMcpConfig` with `SqlPolicyConfig(allowWrites = false)`.
+`android-mcp-room-tools` is intended for developer builds. By default, `execute_sql` allows write
+statements so developers can inspect and repair local debug data quickly. If your workflow needs a
+read-only debug surface, provide a `RoomMcpConfig` with `SqlPolicyConfig(allowWrites = false)`.
 
-Choose the provider adapter that matches your Room generation:
+Add the core provider API, the adapter that matches your Room generation, and the debug-only tools:
 
 ```kotlin
+implementation("top.cyclops:android-mcp-room-core:<version>")
+
 // Room 2.x / androidx.room
 implementation("top.cyclops:android-mcp-room2:<version>")
 
 // Room 3.x / androidx.room3
 implementation("top.cyclops:android-mcp-room3:<version>")
+
+debugImplementation("top.cyclops:android-mcp-room-tools:<version>")
 ```
 
-To use it, implement a provider and register it:
+Then implement a provider and register it:
 
 ```kotlin
-// 1. Implement a provider
+// 1. Implement a Room 2.x provider
 class SampleRoom2Provider @Inject constructor(
     override val database: AppDatabase,
 ) : Room2DatabaseProvider {
@@ -145,6 +149,17 @@ class SampleRoom2Provider @Inject constructor(
 object AppModule {
     @Provides @IntoSet
     fun provideRoomProvider(provider: SampleRoom2Provider): McpDatabaseProvider = provider
+}
+```
+
+For Room 3.x, use `Room3DatabaseProvider` instead:
+
+```kotlin
+class SampleRoom3Provider @Inject constructor(
+    override val database: AppDatabase,
+) : Room3DatabaseProvider {
+    override val name: String = "sample.db"
+    override val description: String = "User database with users table (id, name, email)"
 }
 ```
 
