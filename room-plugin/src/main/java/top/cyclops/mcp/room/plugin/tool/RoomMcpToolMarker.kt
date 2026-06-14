@@ -5,16 +5,23 @@ import top.cyclops.mcp.common.McpParam
 import top.cyclops.mcp.common.McpTool
 import top.cyclops.mcp.common.McpToolMarker
 import top.cyclops.mcp.common.ToolResult
+import top.cyclops.mcp.room.plugin.config.RoomMcpConfig
 import top.cyclops.mcp.room.plugin.core.McpRoomProvider
 import top.cyclops.mcp.room.plugin.tools.RoomExecutor
+import top.cyclops.mcp.room.plugin.tools.SqlExecutionMode
 import top.cyclops.mcp.room.plugin.tools.SqlPolicy
+import top.cyclops.mcp.room.plugin.tools.SqlPolicyResult
+import java.util.Optional
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class RoomMcpToolMarker @Inject constructor(
-    providers: Set<@JvmSuppressWildcards McpRoomProvider>
+    providers: Set<@JvmSuppressWildcards McpRoomProvider>,
+    roomConfig: Optional<RoomMcpConfig> = Optional.empty()
 ) : McpToolMarker {
+
+    private val config = roomConfig.orElse(RoomMcpConfig())
 
     private val providerMap: Map<String, McpRoomProvider> =
         providers.associateBy { it.name }.also { map ->
@@ -66,12 +73,12 @@ class RoomMcpToolMarker @Inject constructor(
               AND name != 'android_metadata'
         """.trimIndent()
         val targetDb = resolveDatabase(database) ?: return noProvidersError()
-        return executeSqlInternal(targetDb, sql)
+        return executeSqlInternal(targetDb, sql, SqlExecutionMode.QUERY)
     }
 
     @McpTool(
         name = "execute_sql",
-        description = "Execute raw SQL on the specified database and return results as CSV. WARNING: To prevent OOM crashes from excessive data, ALL SELECT queries MUST include a LIMIT clause (recommended: LIMIT 20)!"
+        description = "Execute raw SQL on the specified database and return query results as CSV. Developer builds allow write statements by default. SELECT queries must include a LIMIT clause (recommended: LIMIT 20)."
     )
     suspend fun executeSql(
         @McpParam(
@@ -86,9 +93,14 @@ class RoomMcpToolMarker @Inject constructor(
         )
         sql: String
     ): ToolResult {
-        SqlPolicy.validate(sql)?.let { return ToolResult.Error(it) }
-        val targetDb = resolveDatabase(database) ?: return noProvidersError()
-        return executeSqlInternal(targetDb, sql)
+        return when (val policy = SqlPolicy.check(sql, config.sqlPolicy)) {
+            is SqlPolicyResult.Allowed -> {
+                val targetDb = resolveDatabase(database) ?: return noProvidersError()
+                executeSqlInternal(targetDb, sql, policy.executionMode)
+            }
+
+            is SqlPolicyResult.Rejected -> ToolResult.Error(policy.reason)
+        }
     }
 
     private fun resolveDatabase(database: String?): String? {
@@ -101,9 +113,13 @@ class RoomMcpToolMarker @Inject constructor(
         )
     }
 
-    private suspend fun executeSqlInternal(database: String, sql: String): ToolResult {
+    private suspend fun executeSqlInternal(
+        database: String,
+        sql: String,
+        mode: SqlExecutionMode
+    ): ToolResult {
         return try {
-            ToolResult.Text(executor.execute(database, sql))
+            ToolResult.Text(executor.execute(database, sql, mode))
         } catch (e: IllegalStateException) {
             ToolResult.Error(e.message ?: "Database connection not found")
         } catch (e: Exception) {

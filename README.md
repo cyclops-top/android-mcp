@@ -99,7 +99,8 @@ Then add to your MCP client config:
 | `sample`           | Demo app with Room database + tools                                            |        —         |
 
 The split between `room-plugin-core` (always included, no MCP dependency) and `room-plugin` (
-debug-only, depends on `:mcp`) means Room database support never ships in release builds.
+debug-only, depends on `:mcp`) means Room database tooling should be added with
+`debugImplementation` and kept out of release builds.
 
 ## Room Plugin
 
@@ -110,6 +111,10 @@ list_databases  → "sample.db - 示例用户数据库"
 inspect_schema  → GET DDL for all tables
 execute_sql     → Run raw SQL, returns CSV
 ```
+
+`room-plugin` is intended for developer builds. By default, `execute_sql` allows write statements
+so developers can inspect and repair local debug data quickly. If your workflow needs a read-only
+debug surface, provide a `RoomMcpConfig` with `SqlPolicyConfig(allowWrites = false)`.
 
 To use it, implement a provider and register it:
 
