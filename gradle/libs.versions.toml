@@ -18,6 +18,7 @@ appstartup = "1.2.0"
 appcompat = "1.7.1"
 sqlite = "2.6.2"
 room = "2.7.0"
+room3 = "3.0.0-alpha06"
 vanniktechMavenPublish = "0.31.0"
 
 [libraries]
@@ -52,6 +53,7 @@ androidx-sqlite = { group = "androidx.sqlite", name = "sqlite-android", version.
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room3-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

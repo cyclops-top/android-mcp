@@ -94,11 +94,13 @@ Then add to your MCP client config:
 |--------------------|--------------------------------------------------------------------------------|:----------------:|
 | `common`           | Shared types: `McpConfig`, `McpToolMarker`, annotations, `ToolResult`          |       Yes        |
 | `mcp`              | Ktor server, `McpToolRegistry`, auto-start via AppStartup                      |       Yes        |
-| `room-plugin-core` | Abstract interfaces: `McpRoomProvider`, `McpRoom2Provider`, `McpRoom3Provider` |       Yes        |
-| `room-plugin`      | Room database MCP tools: `list_databases`, `inspect_schema`, `execute_sql`     |    Debug only    |
+| `android-mcp-room-core`  | Abstract interfaces: `McpDatabaseProvider`, `McpRoom2DatabaseProvider`, `McpRoom3DatabaseProvider` |       Yes        |
+| `android-mcp-room2`      | Room 2.x adapter defaults for `McpRoom2DatabaseProvider`                               |       Yes        |
+| `android-mcp-room3`      | Room 3.x adapter defaults for `McpRoom3DatabaseProvider`                               |       Yes        |
+| `android-mcp-room-tools` | Room database MCP tools: `list_databases`, `inspect_schema`, `execute_sql`     |    Debug only    |
 | `sample`           | Demo app with Room database + tools                                            |        —         |
 
-The split between `room-plugin-core` (always included, no MCP dependency) and `room-plugin` (
+The split between `android-mcp-room-core` (always included, no MCP dependency) and `android-mcp-room-tools` (
 debug-only, depends on `:mcp`) means Room database tooling should be added with
 `debugImplementation` and kept out of release builds.
 
@@ -116,19 +118,25 @@ execute_sql     → Run raw SQL, returns CSV
 so developers can inspect and repair local debug data quickly. If your workflow needs a read-only
 debug surface, provide a `RoomMcpConfig` with `SqlPolicyConfig(allowWrites = false)`.
 
+Choose the provider adapter that matches your Room generation:
+
+```kotlin
+// Room 2.x / androidx.room
+implementation("top.cyclops:android-mcp-room2:<version>")
+
+// Room 3.x / androidx.room3
+implementation("top.cyclops:android-mcp-room3:<version>")
+```
+
 To use it, implement a provider and register it:
 
 ```kotlin
 // 1. Implement a provider
 class SampleRoom2Provider @Inject constructor(
-    private val database: AppDatabase,
-) : McpRoom2Provider {
+    override val database: AppDatabase,
+) : Room2DatabaseProvider {
     override val name: String = "sample.db"
     override val description: String = "User database with users table (id, name, email)"
-
-    override fun getReadableDatabase(): SupportSQLiteDatabase {
-        return database.openHelper.readableDatabase
-    }
 }
 
 // 2. Bind it into the set — tools are auto-discovered
@@ -136,7 +144,7 @@ class SampleRoom2Provider @Inject constructor(
 @InstallIn(SingletonComponent::class)
 object AppModule {
     @Provides @IntoSet
-    fun provideRoomProvider(provider: SampleRoom2Provider): McpRoomProvider = provider
+    fun provideRoomProvider(provider: SampleRoom2Provider): McpDatabaseProvider = provider
 }
 ```
 

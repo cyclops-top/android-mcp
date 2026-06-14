@@ -40,8 +40,9 @@ android {
 dependencies {
     implementation(project(":mcp"))
     implementation(project(":common"))
-    implementation(project(":room-plugin-core"))
-    debugImplementation(project(":room-plugin"))
+    implementation(project(":android-mcp-room-core"))
+    implementation(project(":android-mcp-room2"))
+    debugImplementation(project(":android-mcp-room-tools"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

@@ -10,7 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import top.cyclops.mcp.common.McpConfig
 import top.cyclops.mcp.common.McpToolMarker
-import top.cyclops.mcp.room.plugin.core.McpRoomProvider
+import top.cyclops.mcp.room.plugin.core.McpDatabaseProvider
 import top.cyclops.mcp.sample.dao.UserDao
 import top.cyclops.mcp.sample.db.AppDatabase
 import top.cyclops.mcp.sample.provider.SampleRoom2Provider
@@ -42,7 +42,7 @@ object AppMcpModule {
 
     @Provides
     @IntoSet
-    fun provideRoom2Provider(provider: SampleRoom2Provider): McpRoomProvider {
+    fun provideRoom2Provider(provider: SampleRoom2Provider): McpDatabaseProvider {
         return provider
     }
 
